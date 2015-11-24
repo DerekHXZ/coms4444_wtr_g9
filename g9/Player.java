@@ -31,6 +31,27 @@ public class Player implements wtr.sim.Player {
 			W[friend_id] = 50;
 	}
 
+	private int pick_player(Point[] players, int[] chat_ids) {
+		// Pick the closest not-chatting player with positive or unknown W
+		// value by index in the array
+		int self_idx = 0;
+		while (players[self_idx].id != self_id) self_idx++;
+
+		double dist = Double.POSITIVE_INFINITY;
+		int index = -1;
+
+		for (int i = 0; i < players.length; i++) {
+			if (i == self_idx) continue; // Self
+			if (chat_ids[i] == -1) continue; // Chatting to someone else
+			if (W[players[i].id] == 0) continue; // No value
+
+			if (getDistance(players[i], players[self_idx]) < dist) {
+				dist  = getDistance(players[i], players[self_idx]);
+				index = i;
+			}
+		}
+		return index;
+	}
 	
 	// play function
 	public Point play(Point[] players, int[] chat_ids,
