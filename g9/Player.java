@@ -199,11 +199,31 @@ public class Player implements wtr.sim.Player {
 					return new Point(0.0, 0.0, p.id);
 			}*/
 		// return a random move
-		double dir = random.nextDouble() * 2 * Math.PI;
-		double dx = 6 * Math.cos(dir);
-		double dy = 6 * Math.sin(dir);
+		return getRandom(self);
+	}
+	
+	
+	public Point getRandom(Point self)
+	{
+		boolean isSafe = false;
+		double dir = 0;
+		double dx = 0;
+		double dy = 0;
+		while (!isSafe)
+		{
+			dir = random.nextDouble() * 2 * Math.PI;
+			dx = 6 * Math.cos(dir);
+			dy = 6 * Math.sin(dir);
+			double x = self.x + dx;
+			double y = self.y + dy;
+			if (x>=0 && x<=20 && y>=0 && y<=20)
+			{
+				isSafe = true;
+			}
+		}
 		return new Point(dx, dy, self_id);
 	}
+	
 	
 	public double getDistance(Point p1, Point p2){
 		double dx = p1.x - p2.x;
