@@ -88,10 +88,10 @@ public class Player implements wtr.sim.Player {
 			for (int soulmate_idx = 0; soulmate_idx < players.length; soulmate_idx++) {
 				if (players[soulmate_idx].id != soulmate_id) continue;
 
-				if (W[players[soulmate_idx].id] <= 10) {soulmate_id = -1; break;} // No additional value to a random stranger...
+				if (W[players[soulmate_idx].id] <= 50) {soulmate_id = -1; break;} // No additional value to a friend...
 				if (isPlayerChatting(soulmate_idx, players, chat_ids)) break; // Chatting to someone else
 				double dd = getDistance(players[self_idx], players[soulmate_idx]);
-				if (dd < 0.25 && dd > 4.0) break; // Cannot reach
+				if (dd < 0.25 && dd > 4.0) return -1; // Cannot reach, go there
 				// Prioritize
 				return soulmate_idx;
 			}
@@ -122,16 +122,16 @@ public class Player implements wtr.sim.Player {
 	public Point moveCloser(Point self, Point chat)
 	{
 		double slope = Math.atan2(chat.y - self.y, chat.x - self.x);
-		double xOffset = (0.5 + 1e-4)*Math.cos(slope);
-		double yOffset = (0.5 + 1e-4)*Math.sin(slope);
-		
+		double xOffset = (0.5 + 1e-4) * Math.cos(slope);
+		double yOffset = (0.5 + 1e-4) * Math.sin(slope);
 
 		double newX = chat.x - xOffset;
 		double newY = chat.y - yOffset;
-		
+
 		// Move to a new position 0.5 metres away from the chat position
 		double dx = newX - self.x;
 		double dy = newY - self.y;
+
 		System.out.println("Moving to : My Player id : " + self_id   + ", Chat id " + chat.id + " (" + (self.x + dx)+", " + (self.y + dy) +" )" + " From :(" + self.x+", " + self.y + " )");
 		
 		return new Point(dx, dy, self_id);	
@@ -183,31 +183,31 @@ public class Player implements wtr.sim.Player {
 		}
 		if(minDistFromOther < distFromChatter) closeEnoughToChatter = false;
 
-		if (wiser || frames_waiting != -1){
+		if (more_wisdom > 0) { // Chat still meaningful
+			if (wiser || frames_waiting != -1) {
 
-			if(distFromChatter>=0.25 && distFromChatter<=4.0){
-				System.out.println("Wiser : My Player id : " + self_id  + ", Chatting with id : " + chat.id);
-				if(closeEnoughToChatter){
-					frames_waiting = -1;
-					return new Point(0.0, 0.0, chat.id);
-				}
-				else{
-					frames_waiting++;
-					if(frames_waiting < 2){
-						return new Point(0.0, 0.0, chat.id);
-					}
-					else{
-						// If waited more than 2 frames with continuous interruption, move on and try someone else
+				if (distFromChatter >= 0.25 && distFromChatter <= 4.0) {
+					System.out.println("Wiser : My Player id : " + self_id + ", Chatting with id : " + chat.id);
+					if (closeEnoughToChatter) {
 						frames_waiting = -1;
+						return new Point(0.0, 0.0, chat.id);
+					} else {
+						frames_waiting++;
+						if (frames_waiting < 2) {
+							return new Point(0.0, 0.0, chat.id);
+						} else {
+							// If waited more than 2 frames with continuous interruption, move on and try someone else
+							frames_waiting = -1;
 
-						// If can move closer, move to min dist
-						if(minDistFromOther > 0.25) {
-							next_id = chat.id;
-							if (self != chat) {
-								return moveCloser(self, chat);
+							// If can move closer, move to min dist
+							if (minDistFromOther > 0.25) {
+								next_id = chat.id;
+								if (self != chat) {
+									return moveCloser(self, chat);
+								}
 							}
-						}
 
+						}
 					}
 				}
 			}
