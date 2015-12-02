@@ -89,7 +89,7 @@ public class Player implements wtr.sim.Player {
 		for (int i = 0; i < players.length; i++) {
 			if (i == self_idx) continue; // Self
 			if (isPlayerChatting(i, players, chat_ids)) continue; // Chatting to someone else
-			if (W[players[i].id] == 0) continue; // No value
+			if (W[players[i].id] <=  0) continue; // No value
 			
 			double dd = getDistance(players[i], players[self_idx]);
 
@@ -109,20 +109,17 @@ public class Player implements wtr.sim.Player {
 	
 	public Point moveCloser(Point self, Point chat)
 	{
-		double slope = Math.abs(Math.atan((chat.y - self.y)/(chat.x - self.x)));
-		double xOffset = 0.5*Math.cos(slope);
-		double yOffset = 0.5*Math.sin(slope);
+		double slope = - Math.atan2(chat.y - self.y, chat.x - self.x);
+		double xOffset = (0.5 + 1e-4)*Math.cos(slope);
+		double yOffset = (0.5 + 1e-4)*Math.sin(slope);
 		
 
-		double newX = (self.x <=chat.x) ? (self.x + xOffset) : (self.x - xOffset);
-		double newY = (self.y <=chat.y) ? (self.y + yOffset) : (self.y - yOffset);
+		double newX = chat.x + xOffset;
+		double newY = chat.y + yOffset;
 		
-		// Move to a new position 0.5 metres away from the current position
-		Point newSelf = new Point(newX, newY, self_id);
-		
-		double dx = (chat.x - newSelf.x)*0.50;
-		double dy = (chat.y - newSelf.y)*0.50;
-		
+		// Move to a new position 0.5 metres away from the chat position
+		double dx = newX - self.x;
+		double dy = newY - self.y;
 		System.out.println("Moving to : My Player id : " + self_id   + ", Chat id " + chat.id + " (" + (self.x + dx)+", " + (self.y + dy) +" )" + " From :(" + self.x+", " + self.y + " )");
 		
 		return new Point(dx, dy, self_id);	
