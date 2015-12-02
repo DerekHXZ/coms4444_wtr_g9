@@ -17,7 +17,9 @@ public class Player implements wtr.sim.Player {
 
 	// Who talk to next
 	private int next_id = -1;
-	
+
+	private int soulmate_id = -1;
+
 	// init function called once
 	public void init(int id, int[] friend_ids, int strangers)
 	{
@@ -47,7 +49,7 @@ public class Player implements wtr.sim.Player {
 		int index = -1;
 		for (int i = 0; i < players.length; i++) {
 			if (i == self_idx) continue; // Self
-			//if (chat_ids[i] == -1) continue; // Chatting to someone else
+			if (isPlayerChatting(i, players, chat_ids)) continue; // Chatting to someone else
 			if (W[players[i].id] == 0) continue; // No value
 			double dd = getDistance(players[i], players[self_idx]);
 			if (W[players[i].id] > maxWisdom && (chat_ids[i]==players[i].id) && dd>=0.25)
@@ -58,9 +60,7 @@ public class Player implements wtr.sim.Player {
 		}
 		return index;
 	}
-	
-	
-	
+
 	
 	private int pick_player(Point[] players, int[] chat_ids) {
 		// Pick the closest not-chatting player with positive or unknown W
@@ -68,37 +68,41 @@ public class Player implements wtr.sim.Player {
 		int self_idx = 0;
 		while (players[self_idx].id != self_id) self_idx++;
 
+		// See if soulmate is in range
+
+		if (soulmate_id != -1) {
+			for (int soulmate_idx = 0; soulmate_idx < players.length; soulmate_idx++) {
+				if (players[soulmate_idx].id != soulmate_id) continue;
+
+				if (W[players[soulmate_idx].id] <= 10) break; // No additional value to a random stranger...
+				if (isPlayerChatting(soulmate_idx, players, chat_ids)) break; // Chatting to someone else
+				double dd = getDistance(players[self_idx], players[soulmate_idx]);
+				if (dd < 0.25 && dd > 4.0) break; // Cannot reach
+				// Prioritize
+				return soulmate_idx;
+			}
+		}
+
 		double dist = Double.POSITIVE_INFINITY;
 		int index = -1;
 
 		for (int i = 0; i < players.length; i++) {
 			if (i == self_idx) continue; // Self
-			//if (chat_ids[i] == -1) continue; // Chatting to someone else
-			//if (W[players[i].id] == 0) continue; // No value
+			if (isPlayerChatting(i, players, chat_ids)) continue; // Chatting to someone else
 			if (W[players[i].id] == 0) continue; // No value
 			
 			double dd = getDistance(players[i], players[self_idx]);
 
-			if (dd < dist && dd>=0.25 && dd<=4.0 && (chat_ids[i]==players[i].id)) {
-				dist  = dd ;
+			if (dd < dist && dd>=0.25 && dd<=4.0) {
+				dist  = dd;
 				index = i;
 			}
 		}
 		return index;
 	}
 	
-	public boolean isPlayerChatting(Integer player_id, Point[] players, int[] chat_ids){
-		int i = 0, j = 0;
-		while (players[i].id != player_id) i++;
-		while (players[j].id != chat_ids[i]) j++;
-		if (i == j)
-		{
-			return false;
-		}
-		else
-		{
-			return true;
-		}
+	public boolean isPlayerChatting(int idx, Point[] players, int[] chat_ids){
+		return !(chat_ids[idx] == players[idx].id);
 	}
 	
 	
@@ -146,9 +150,12 @@ public class Player implements wtr.sim.Player {
 		Point chat = players[j];
 		// record known wisdom (more_wisdom is remaining wisdom)
 		W[chat.id] = more_wisdom;
+		if (more_wisdom > 50) {
+			// Soulmate found
+			soulmate_id = chat.id;
+		}
 		
-		
-		
+
 		// If there's somone closer, move on
 		boolean closeEnoughToChatter = true;
 		double distFromChatter = getDistance(self, chat); 
@@ -162,19 +169,21 @@ public class Player implements wtr.sim.Player {
 		}
 		if(minDistFromOther < distFromChatter) closeEnoughToChatter = false;
 
-		
-		if(wiser){
-			
-			if(closeEnoughToChatter && distFromChatter>=0.25 && distFromChatter<=4.0){
-				System.out.println("Wiser : My Player id : " + self_id  + ", Chatting with id : " + chat.id);
+		// Continue chat if ideal
+		if (closeEnoughToChatter && distFromChatter >= 0.25 && distFromChatter <= 4.0) {
+			System.out.println("Wiser : My Player id : " + self_id + ", Chatting with id : " + chat.id);
+			if (W[chat.id] > 0) {
 				return new Point(0.0, 0.0, chat.id);
 			}
-			else{
-				// If can move closer, move to min dist
-				if(minDistFromOther > 0.25){
-					
-					next_id = chat.id;
-					return moveCloser( self,  chat);
+		}
+
+		// If can move closer, move to min dist
+		if(minDistFromOther > 0.25) {
+			next_id = chat.id;
+			if (self != chat) {
+				return moveCloser(self, chat);
+			}
+		}
 
 					/*double dx = self.x;
 					double dy = self.y;
@@ -218,10 +227,8 @@ public class Player implements wtr.sim.Player {
 					}
 					// Eventually, try to move in a circle around 
 					next_id = chat.id;
-					return new Point(dx, dy, self_id);		*/	
-				}
-			}
-		}
+					return new Point(dx, dy, self_id);		*/
+		/*
 
 		if(next_id != -1){
 			// See if player is nearby and isn't chatting with anyone
@@ -240,7 +247,7 @@ public class Player implements wtr.sim.Player {
 				return new Point(0.0, 0.0, chat.id);				
 			}
 		}
-
+		*/
 		
 		// try to initiate chat if previously not chatting
 		if (i == j)
@@ -255,14 +262,16 @@ public class Player implements wtr.sim.Player {
 			{
 				//Move closer to player that has the maximum wisdom and is not chatting with anyone....
 				ind = getMaxWisdomPlayer(players, chat_ids);
+
 				if (ind != -1)
 				{
+					System.out.println("Moving closer to player : " + players[ind].id);
 					return moveCloser( self,  players[ind]);
 				}
 				
 			}
 		}
-			
+
 			/*for (Point p : players) {
 				// skip if no more wisdom to gain
 				if (W[p.id] == 0) continue;
