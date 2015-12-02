@@ -18,6 +18,10 @@ public class Player implements wtr.sim.Player {
 	// Who talk to next
 	private int next_id = -1;
 	
+	// How many consecutive frames you've been interrupted while chatting 
+	private int frames_waiting = -1;
+	
+	
 	// init function called once
 	public void init(int id, int[] friend_ids, int strangers)
 	{
@@ -165,9 +169,22 @@ public class Player implements wtr.sim.Player {
 		
 		if(wiser){
 			
-			if(closeEnoughToChatter && distFromChatter>=0.25 && distFromChatter<=4.0){
+			if(distFromChatter>=0.25 && distFromChatter<=4.0){
 				System.out.println("Wiser : My Player id : " + self_id  + ", Chatting with id : " + chat.id);
-				return new Point(0.0, 0.0, chat.id);
+				if(closeEnoughToChatter){
+					frames_waiting = -1;
+					return new Point(0.0, 0.0, chat.id);					
+				}
+				else{
+					frames_waiting++;
+					if(frames_waiting < 2){
+						return new Point(0.0, 0.0, chat.id);						
+					}
+					else{
+						// If waited more than 2 frames with continuous interruption, move on and try someone else
+						frames_waiting = -1;
+					}
+				}
 			}
 			else{
 				// If can move closer, move to min dist
