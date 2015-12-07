@@ -43,7 +43,7 @@ public class Player implements wtr.sim.Player {
 		for (int friend_id : friend_ids)
 			W[friend_id] = 50;
 		undiscovered_num = strangers + 1;
-		undiscovered_pts = 10 * undiscovered_num + 200;
+		undiscovered_pts = 10 * undiscovered_num + 400;
 	}
 
 	
@@ -64,13 +64,14 @@ public class Player implements wtr.sim.Player {
 			
 			double dd = getDistance(players[i], players[self_idx]);
 			
-			
 			if (players[i].id == soulmate_id && W[players[i].id] >= 20) return i; // ALWAYS GO TO SOULMATE
 
-			if (isPlayerChatting(i, players, chat_ids)) continue; // Chatting to someone else
+			//if (isPlayerChatting(i, players, chat_ids)) continue; // Chatting to someone else
 			
 			double w = W[players[i].id];
 			if (w == -1) w = ((double)undiscovered_pts) / undiscovered_num; // Expected for unknown strangers
+			//if (w > maxWisdom &&  w >= 10 && (chat_ids[i]==players[i].id))
+			//if (w > maxWisdom &&  w >= 10 && (chat_ids[i]==players[i].id))
 			if (w > maxWisdom && (chat_ids[i]==players[i].id))
 			{
 				maxWisdom = w;
@@ -96,7 +97,8 @@ public class Player implements wtr.sim.Player {
 				if (W[players[soulmate_idx].id] <= 50) {soulmate_id = -1; break;} // No additional value to a friend...
 				if (isPlayerChatting(soulmate_idx, players, chat_ids)) break; // Chatting to someone else
 				double dd = getDistance(players[self_idx], players[soulmate_idx]);
-				if (dd < 0.25 || dd > 4.0) return -1; // Cannot reach, go there
+				//if (dd < 0.25 || dd > 4.0) return -1; // Cannot reach, go there
+				if (dd < 0.25 || dd > 4.0) break; // Cannot reach, go there
 				// Prioritize
 				return soulmate_idx;
 			}
@@ -108,7 +110,7 @@ public class Player implements wtr.sim.Player {
 		for (int i = 0; i < players.length; i++) {
 			if (i == self_idx) continue; // Self
 			if (isPlayerChatting(i, players, chat_ids)) continue; // Chatting to someone else
-			if (W[players[i].id] <=  0) continue; // No value
+			if (W[players[i].id] == 0) continue; // No value
 			
 			double dd = getDistance(players[i], players[self_idx]);
 
@@ -132,8 +134,9 @@ public class Player implements wtr.sim.Player {
 	public Point moveCloser(Point self, Point chat)
 	{
 		double slope = Math.atan2(chat.y - self.y, chat.x - self.x);
-		double xOffset = (0.5 + 1e-4) * Math.cos(slope);
-		double yOffset = (0.5 + 1e-4) * Math.sin(slope);
+		
+		double xOffset = (0.52) * Math.cos(slope);
+		double yOffset = (0.52) * Math.sin(slope);
 
 		double newX = chat.x - xOffset;
 		double newY = chat.y - yOffset;
@@ -141,6 +144,14 @@ public class Player implements wtr.sim.Player {
 		// Move to a new position 0.5 metres away from the chat position
 		double dx = newX - self.x;
 		double dy = newY - self.y;
+		
+		
+		dx = chat.x - self.x;
+        dy = chat.y - self.y;
+        double targetDistace = Math.sqrt(dx * dx + dy * dy);
+		
+		dx = (targetDistace - 0.52) * (chat.x - self.x) / targetDistace;
+	    dy = (targetDistace - 0.52) * (chat.y - self.y) / targetDistace;
 
 		System.out.println("Moving to : My Player id : " + self_id   + ", Chat id " + chat.id + " (" + (self.x + dx)+", " + (self.y + dy) +" )" + " From :(" + self.x+", " + self.y + " )");
 		
@@ -171,7 +182,13 @@ public class Player implements wtr.sim.Player {
 		// record known wisdom (more_wisdom is remaining wisdom)
 		if (W[chat.id] == -1) {
 			undiscovered_num --;
-			undiscovered_pts -= (more_wisdom > 50) ? 200 : 10;
+			if (more_wisdom > 198) {
+				undiscovered_pts -= 400;
+			} else if (more_wisdom > 18) {
+				undiscovered_pts -= 20;
+			} else if (more_wisdom > 8) {
+				undiscovered_pts -= 10;
+			}
 		}
 		W[chat.id] = more_wisdom;
 		if (more_wisdom > 50) {
@@ -180,7 +197,7 @@ public class Player implements wtr.sim.Player {
 		}
 		
 		
-		if (wiser)
+		/*if (wiser)
 		{
 			count_consecutive = 0;
 		}
@@ -193,7 +210,7 @@ public class Player implements wtr.sim.Player {
 			count_consecutive = 0;
 			// return a random move
 			return getRandom(self);
-		}
+		}*/
 		
 
 		// If there's someone closer, move on
@@ -216,14 +233,15 @@ public class Player implements wtr.sim.Player {
 					System.out.println("Wiser : My Player id : " + self_id + ", Chatting with id : " + chat.id);
 					if (closeEnoughToChatter) {
 						frames_waiting = -1;
-						if (distFromChatter < 0.5)
+						//return new Point(0.0, 0.0, chat.id);
+						if (distFromChatter < 0.8)
 						{
 							return new Point(0.0, 0.0, chat.id);
 						}
 						else
 						{
 							return moveCloser(self, chat);
-						}				
+						}			
 					} else {
 						frames_waiting++;
 						if (frames_waiting < 2) {
@@ -291,7 +309,6 @@ public class Player implements wtr.sim.Player {
 					next_id = chat.id;
 					return new Point(dx, dy, self_id);		*/
 		/*
-
 		if(next_id != -1){
 			// See if player is nearby and isn't chatting with anyone
 			int index = 0;
