@@ -208,6 +208,7 @@ public class Player implements wtr.sim.Player {
 		if (count_consecutive == 15)
 		{
 			count_consecutive = 0;
+			frames_waiting = -1;
 			// return a random move
 			return getRandom(self);
 		}
@@ -227,41 +228,38 @@ public class Player implements wtr.sim.Player {
 		if(minDistFromOther < distFromChatter) closeEnoughToChatter = false;
 
 		if (more_wisdom > 0) { // Chat still meaningful
-			if (wiser || frames_waiting != -1) {
-
-				if (distFromChatter >= 0.25 && distFromChatter <= 4.0) {
-					// System.out.println("Wiser : My Player id : " + self_id + ", Chatting with id : " + chat.id);
-					if (closeEnoughToChatter) {
-						frames_waiting = -1;
-						//return new Point(0.0, 0.0, chat.id);
-						if (distFromChatter < 0.8)
-						{
-							return new Point(0.0, 0.0, chat.id);
-						}
-						else
-						{
-							return moveCloser(self, chat);
-						}			
+			// if (wiser || frames_waiting != -1) {
+				// System.out.println("Wiser : My Player id : " + self_id + ", Chatting with id : " + chat.id);
+				if (wiser) { // closeEnoughToChatter) {
+					frames_waiting = -1;
+					//return new Point(0.0, 0.0, chat.id);
+					if (distFromChatter < 0.8)
+					{
+						return new Point(0.0, 0.0, chat.id);
+					}
+					else
+					{
+						return moveCloser(self, chat);
+					}
+				} else {
+					frames_waiting++;
+					if (frames_waiting < 2) {
+						return new Point(0.0, 0.0, chat.id);
 					} else {
-						frames_waiting++;
-						if (frames_waiting < 2) {
-							return new Point(0.0, 0.0, chat.id);
-						} else {
-							// If waited more than 2 frames with continuous interruption, move on and try someone else
-							frames_waiting = -1;
+						// If waited more than 2 frames with continuous interruption, move on and try someone else
+						frames_waiting = -1;
 
-							// If can move closer, move to min dist
-							if (minDistFromOther > 0.25) {
-								next_id = chat.id;
-								if (self != chat) {
-									return moveCloser(self, chat);
-								}
+						// If can move closer, move to min dist
+						if (minDistFromOther > 0.25) {
+							next_id = chat.id;
+							if (self != chat) {
+								return moveCloser(self, chat);
 							}
-
 						}
+
 					}
 				}
-			}
+			// }
 		}
 
 
@@ -331,6 +329,7 @@ public class Player implements wtr.sim.Player {
 		// try to initiate chat if giving up / not chatting
 		if (true)
 		{
+			frames_waiting = -1;
 			int ind = pick_player(players, chat_ids);
 			if (ind != -1)
 			{
@@ -363,6 +362,8 @@ public class Player implements wtr.sim.Player {
 					return new Point(0.0, 0.0, p.id);
 			}*/
 		// return a random move
+		count_consecutive = 0;
+		frames_waiting = -1;
 		return getRandom(self);
 	}
 	
