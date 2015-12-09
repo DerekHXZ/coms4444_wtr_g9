@@ -205,7 +205,7 @@ public class Player implements wtr.sim.Player {
 		{
 			count_consecutive++;
 		}
-		if (count_consecutive == 15)
+		if (count_consecutive == 6)
 		{
 			count_consecutive = 0;
 			frames_waiting = -1;
