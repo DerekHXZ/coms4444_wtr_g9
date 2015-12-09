@@ -153,7 +153,7 @@ public class Player implements wtr.sim.Player {
 		dx = (targetDistace - 0.52) * (chat.x - self.x) / targetDistace;
 	    dy = (targetDistace - 0.52) * (chat.y - self.y) / targetDistace;*/
 
-		System.out.println("Moving to : My Player id : " + self_id   + ", Chat id " + chat.id + " (" + (self.x + dx)+", " + (self.y + dy) +" )" + " From :(" + self.x+", " + self.y + " )");
+		// System.out.println("Moving to : My Player id : " + self_id   + ", Chat id " + chat.id + " (" + (self.x + dx)+", " + (self.y + dy) +" )" + " From :(" + self.x+", " + self.y + " )");
 		
 		return new Point(dx, dy, self_id);	
 		
@@ -230,7 +230,7 @@ public class Player implements wtr.sim.Player {
 			if (wiser || frames_waiting != -1) {
 
 				if (distFromChatter >= 0.25 && distFromChatter <= 4.0) {
-					System.out.println("Wiser : My Player id : " + self_id + ", Chatting with id : " + chat.id);
+					// System.out.println("Wiser : My Player id : " + self_id + ", Chatting with id : " + chat.id);
 					if (closeEnoughToChatter) {
 						frames_waiting = -1;
 						//return new Point(0.0, 0.0, chat.id);
@@ -334,7 +334,7 @@ public class Player implements wtr.sim.Player {
 			int ind = pick_player(players, chat_ids);
 			if (ind != -1)
 			{
-				System.out.println("Picking the closest player : My Player id : " + self_id + " : Picked player ID " + players[ind].id);
+				// System.out.println("Picking the closest player : My Player id : " + self_id + " : Picked player ID " + players[ind].id);
 				return new Point(0.0, 0.0, players[ind].id);
 			}
 			else
@@ -344,7 +344,7 @@ public class Player implements wtr.sim.Player {
 
 				if (ind != -1)
 				{
-					System.out.println("Moving closer to player : " + players[ind].id);
+					// System.out.println("Moving closer to player : " + players[ind].id);
 					return moveCloser( self,  players[ind]);
 				}
 				
@@ -386,7 +386,7 @@ public class Player implements wtr.sim.Player {
 			}
 		}
 		
-		System.out.println("Random move: My Player id : " + self_id   + " (" + (self.x + dx)+", " + (self.y + dy) +" )" + " From :(" + self.x+", " + self.y + " )");
+		// System.out.println("Random move: My Player id : " + self_id   + " (" + (self.x + dx)+", " + (self.y + dy) +" )" + " From :(" + self.x+", " + self.y + " )");
 		
 		return new Point(dx, dy, self_id);
 	}
